@@ -1,0 +1,38 @@
+param tasks;
+param robots;
+set city = 1..tasks;
+set DEST = 2..tasks;
+set ROBO = 1..robots;
+param D{city,city};
+param S{ROBO};
+var U{city} >= 0 integer;
+var x{city,city,ROBO} binary;
+param N := card(city);
+
+
+minimize objective_function:
+			max(sum{i in city, j in city}	x[i,j,1]*D[i,j], sum{i in city, j in city}	x[i,j,2]*D[i,j], sum{i in city, j in city}	x[i,j,3]*D[i,j]);
+
+
+
+subject to depart{k in ROBO}:			# m robots leave depot
+	sum{j in city} x[1,j,k] = 1;
+
+subject to return{k in ROBO}:			# m robots return to depot
+	sum{j in city} x[j,1,k] = 1;
+
+subject to noreturn{i in city, k in ROBO}:		# robots can't depart and arrive to same location
+	x[i,i,k] = 0;
+
+subject to routecontinuity{p in city, k in ROBO}:
+	sum{i in city} x[i,p,k] - sum{j in city} x[p,j,k] = 0;
+
+subject to singleentrance{j in DEST}: 	# all nodes are entered exactly once
+	sum{i in city} sum{k in ROBO} x[i,j,k] = 1;
+
+subject to singleexit{i in DEST}:	# all nodes are exited exactly once
+	sum{j in city} sum{k in ROBO} x[i,j,k] = 1;
+
+subject to c3{l in ROBO, k in city, j in city: j > 1 and k > 1}:  			#no subtours
+          U[j] - U[k] + N*x[j,k,l] <= N-1;
+

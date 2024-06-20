@@ -1,0 +1,82 @@
+I have extracted this project out from the TA version i.e.  ST-SR-TA based project which you can I guess find in the
+code backup. This project entertains a few things.
+1. the job generation is limited to 64 jobs as yet, since the space this project entertains is -4,4 in size and their
+are only 64 unique combinations in that so no more jobs than 64. if want more jobs then increase the size of the empty
+map you are working in. not only in the python side also in the ROS side
+3. The project entertains the simple version ST-SR-IA type of problem which can be run using only deap__init.py.
+while running deap__init take care of the varaibles at the starting of the file. also there are portion which if commented
+out and others if uncommented in can help you run optimization without all the gazebo garbage, from pre generated job descriptions and all.
+4. The timed arrival thing can be run by Execution.py  first running the deap__init it saves the population at the end then the execution.py routine
+calls for new job generations (altering the files from deap__init) then job_representation and then deap__followup.py to reoptimize the previous things.
+5. The MR things are run using the job_type variable in deap__init. It is basically the variable passed to job_generation. so if there are
+jobs generated of more than one type then both deap__init and deap__followup are fit to handle them. The TA working is same for MR as SR. Usually I alter the the type variable in deap__init and for deap_followup it is automatically done at the time of generating new jobs through execute.py. 
+6. Heterogeneous team of robots by altering the speeds of the robots from 1, 1, 1 to something like .7, .68, .65 these speeds 
+7. Distance based and time based fitness functions both for the deap__init and for the auction based scheme. 
+8. plot_TSP plots the tsp based path for robots. its more effecient for SR tasks rather MR tasks.
+9. Have isolated few of the frequently executed parsers into parsers.py and also have embedded a for_cplex routine in parsers.py for easier windows (CPLEX) implementation of the distance matrix. Execute it at the end of each job execution.
+10. Auction based scheme is also working perfectly fine. have moved few of the routines from the auction end to the robot class for better presentation of the project. the reauction part doesn't really seem to be working. 
+
+pay special attention to the speed matrix the robot numbers the jobs coz they are almost declared in each concerned file. So track if they are passed to the main routine being called for that particular python file or if they are taken locally.
+
+The iterative version is similar to the single execution one and relies more on the execution.py which basically uses two for loops for iterating through the number of jobs and then the individual instances for each job combination. the SR-MR configuration is still to be done from the deap__init.py altering the job type variable. Also the speeds are to be adjusted from the same python file.  
+
+
+
+
+File Details:
+
+____G___P___J___R____I_jobs_solutions.txt:
+____G___P___J___R____I_jobs_stats.txt:      These two file are put in by GA_solo.py and deap__followup.py to record the
+                                            stats and best solution of each generation.
+best_solution.pkl:  Dumped by GA_solo and deap__followup at the end of their runs effectively saving the last best
+                    solution. This is used in deap__followup for edit_start_locations routine which
+                    is usually commented out but could be really important if you are going into any iterative routine
+                    with already attempted tasks so that the last solution could be checked for where the robots left
+                    their operation by comparing the solution and attempted tasks.
+start2jobs.txt:     This file is made by the reader_classbased_dict.get_costmatrix routine where this is nothing but
+                    the distance of each task from the home location. The first line of the cost matrix effectively
+                    computed using fitness4mstart sort of some routine.
+dist_matrix.txt:    This file is made by the reader_classbased_dict.get_costmatrix routine where this is the matrix
+                    calculated using ROS, storing the inter task distances including the start matrix. The complete matrix
+dist_matrix_pickle.pkl: The same distance matrix calculated in reader_classbased_dict.get_costmatrix is also saved as
+                        this file. has all the distances including the start matrix seems to be never used
+dist_matrix.pkl:    This is exctly the same file as above (dist_matrix_pickle) the only difference is that this one is
+                    dumped in GA_solo and deap__followup which means the dist_matrix.pkl is updated after every run
+start_matrix.pkl:   This is the first line of the dist matrix. is dumped in GA_solo and deap__followup which means the
+                    start_matrix.pkl is updated after every run. Is extensively used in GA_solo for the already
+                    generated cases of tasks. Otherwise it is generated afresh by reader_classbased_dict.get_costmatrix
+                    in both GA_solo and deap__followup.
+job_representation.txt: used in reader_classbased_dict.get_job_dict to read the conventional jobs written in the text
+                        file and convert them into job dictionary and sub_job_dict
+job_dict.pkl:       reader_classbased_dict.get_job_dict creates this file and is used in GA_solo and deap_followup.
+                    The GA_solo dumps it if the whole ROS thing runs, i.e. there is a brand new iteration running.
+                    The deap_followup updates it always as deap followup usually runs after new tasks arrive.
+                    The file is always altered by deap_followup
+sub_job_dict.pkl:   reader_classbased_dict.get_job_dict creates this file and is used in GA_solo and deap_followup.
+                    The GA_solo dumps it if the whole ROS thing runs, i.e. there is a brand new iteration running.
+                    The deap_followup updates it always as deap followup usually runs after new tasks arrive.
+                    The file is always altered by deap_followup
+sub_job_dict_followup.pkl: created in deap__followup by deleting attempted jobs from all sub jobs i.e.
+                    all_tasks - attempted tasks = followup tasks to be done. Used in SSI_followup later on.
+                    Only updated by deap__followup. Becomes important when there are already attempted tasks
+job_file.txt:       Formed by the main routine in gen_job.py where for a given count new jobs are generated and stored
+                    in this file. used in the jobs_alteration.py by jobs_representation_simple for creating the sub job
+                    based represetation out of the normal jobs initiated in this file.
+jobs.pkl:           This is the same file as job_file.txt. Created by gen_job.py main routine. where generated jobs
+                    are saved. Used in the job_alteration.py by the routine add_job_simple where old jobs can be kept in
+                    front while generating new jobs so that no conflict arises.
+job_representation.txt:     This is created by job_alteration.job_representaion_simple OR reader_classbased_dict.job_representation
+                            Contains the sub job based represetation out of the normal jobs initiated in this file.
+                            Is used in reader_classbased_dict.py routined init_jobs and get_job_dict(which returns job_dict
+                            and sub_job_dict) once these are formed then there is no real need of this file. GA_solo and
+                            deap__followup then use the job_dict and sub_job_dict.
+population_file.pkl: Written in GA_solo and used and written in deap__followup. Basic use is to save last generation so that
+                             if could be used on start up for the iterative version of things.
+solution.txt and solution_individual.txt:   Both written in GA_solo and deap__followup and used no where. Just to show you the resutls.
+speed.txt:          Written in GA_solo and deap__followup and if transfered outside the iteration specific folder i.e.
+                    /home/usman/research_gaz_ros/src/turtlebot_research/src/txt_files/ST_SR_TA.txt then is used by
+                    parsers.read_speed routine which is used in auction and SSI to read the speed of robots against a particular
+                    allocation to be tested.
+auction_solution.txt    Solutions saved by auction_traderbots and SSI of their results. Used no where, is for the user.
+SSI_solution_file.pkl: Written by SSI_auction_Sven at the end of the run to save the solution and used by SSI_followup.py
+                        for reinitiating the work from where it is left before the addition of tasks.
